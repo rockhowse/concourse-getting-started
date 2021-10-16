@@ -5,7 +5,7 @@
 ##   1. Watches a 'test' branch of a GitHub repository
 ##   2. When a new commit is detected, run some tests (as shell scripts, in this case)
 ##   3. Notify the developer of the status of each test via Slack
-## - When ready, the developer can then open a PR for a 'master' branch, and the developer 
+## - When ready, the developer can then open a PR for a 'master' branch, and the developer
 ##   team can then handle that in whatever way they want
 ##########################################################################################
 
@@ -17,10 +17,10 @@
 ## - Additional resource_types can be found here: https://resource-types.concourse-ci.org
 ##########################################################################################
 resource_types:
-  - name: slack-notification
-    type: docker-image
-    source:
-      repository: cfcommunity/slack-notification-resource
+  # - name: slack-notification
+  #   type: docker-image
+  #   source:
+  #     repository: cfcommunity/slack-notification-resource
 
 ##########################################################################################
 ## - The resources section defined the resources used in this pipeline
@@ -42,7 +42,7 @@ resources:
       branch: test
 ##########################################################################################
 ## - Here is the same definition for the git repo containing the test-scripts
-##########################################################################################  
+##########################################################################################
   - name: test-scripts
     type: git
     source:
@@ -52,10 +52,10 @@ resources:
 ## - And for the slack resource
 ## - In this case, since Concourse will just be posting, only the webhook URL is required
 ##########################################################################################
-  - name: slack
-    type: slack-notification
-    source:
-      url: ((slack-webhook-url))
+  # - name: slack
+  #   type: slack-notification
+  #   source:
+  #     url: ((slack-webhook-url))
 
 ##########################################################################################
 ## - Now we define jobs (big green boxes in the Concourse UI)
@@ -78,8 +78,8 @@ jobs:
 ##           to anyone outside the Concourse team the job was created in. If true
 ##           the pipeline and logs will be visible to any user in Concourse
 ## - serial: By default, false. All jobs run in parallel. Use this to limit Concourse
-##           to one build at a time 
-## - plan: Items the job should do prior to running any tasks. 
+##           to one build at a time
+## - plan: Items the job should do prior to running any tasks.
 ## - plan.get: get the resources by name, defined in the resources section.
 ## - plan.put: "put" to a named resource. In this case a notification to Slack. Params
 ##             are specific to the recource_type
@@ -91,10 +91,10 @@ jobs:
       - get: spring-petclinic
         trigger: true
       - get: test-scripts
-      - put: slack
-        params:
-          text: "starting job 'maven-test'"
-          silent: true
+      # - put: slack
+      #   params:
+      #     text: "starting job 'maven-test'"
+      #     silent: true
 
 ##########################################################################################
 ## - tasks do "one thing"
@@ -104,7 +104,7 @@ jobs:
 ##   on our spring-petclinic app, inside a Maven container pulled from Docker Hub. Then
 ##   we are sending a notification to Slack on the status of the job.
 ## - Tasks should be limited for troubleshooting and management
-## - config: Where to run the task (in what container), resources used (inputs), and 
+## - config: Where to run the task (in what container), resources used (inputs), and
 ##           commands to run
 ## - on_failure: If the task fails, what should Concourse do?
 ## - on_success: If the task succeeds, what should Concourse do?
@@ -114,7 +114,7 @@ jobs:
           platform: linux
           image_resource:
             type: docker-image
-            source: 
+            source:
               repository: maven
               tag: 3-jdk-11-openj9
           inputs:
@@ -123,33 +123,33 @@ jobs:
 
 ##########################################################################################
 ## - By default, Concourse will import resources within the container to the path
-##   /$pwd/$INPUT_NAME. 
-## - All commands will be run starting from $pwd. So to run the script, start the path 
+##   /$pwd/$INPUT_NAME.
+## - All commands will be run starting from $pwd. So to run the script, start the path
 ##   from the input name. Then the normal directory structure of the resource imported.
 ##########################################################################################
           run:
             path: test-scripts/test-scripts/unit-test.sh
-        on_failure:
-          put: slack
-          params:
-            text: "Task 'run-mvn-test' failed"
-            silent: true
-        on_success:
-          put: slack
-          params:
-            text: "Task 'run-mvn-test' succeeded"
-            silent: true
+        # on_failure:
+        #   put: slack
+        #   params:
+        #     text: "Task 'run-mvn-test' failed"
+        #     silent: true
+        # on_success:
+        #   put: slack
+        #   params:
+        #     text: "Task 'run-mvn-test' succeeded"
+        #     silent: true
 
 ##########################################################################################
-## - Here we are defining another job. 
+## - Here we are defining another job.
 ## - This job also includes a single task which als runs a test script
-## - In this case, it is not necessary to define a separate job just to run 
+## - In this case, it is not necessary to define a separate job just to run
 ##   the same type of task as the previous job
 ## - It would be better to just include this task along with the previous task, or
 ##   integrate the two scripts together so it could be run out of the same task.
 ## - These are examples of segmentation in Concourse. How jobs and tasks, as well as the
 ##   actions performed in those tasks are segmented and defined is up to the pipeline builder.
-##   Each method has its own tradeoffs. 
+##   Each method has its own tradeoffs.
 ## - This job is practically identical to the one above, except for:
 ## - passed: Here we tell this job only to start on the successful completion of another job.
 ##           In this case, the maven-test job defined above.
@@ -160,19 +160,19 @@ jobs:
     plan:
       - get: spring-petclinic
         trigger: true
-        passed: 
+        passed:
           - maven-test
       - get: test-scripts
-      - put: slack
-        params:
-          text: "starting job 'developer-tests'"
-          silent: true
+      # - put: slack
+      #   params:
+      #     text: "starting job 'developer-tests'"
+      #     silent: true
       - task: run-developer-tests
         config:
           platform: linux
           image_resource:
             type: docker-image
-            source: 
+            source:
               repository: maven
               tag: 3-jdk-11-openj9
           inputs:
@@ -180,13 +180,13 @@ jobs:
             - name: test-scripts
           run:
             path: test-scripts/test-scripts/developer-unit-test-01.sh
-        on_failure:
-          put: slack
-          params:
-            text: "Taks 'run-developer-tests' failed"
-            silent: true
-        on_success:
-          put: slack
-          params:
-            text: "Task 'run-developer-tests' succeeded"
-            silent: true
+        # on_failure:
+        #   put: slack
+        #   params:
+        #     text: "Taks 'run-developer-tests' failed"
+        #     silent: true
+        # on_success:
+        #   put: slack
+        #   params:
+        #     text: "Task 'run-developer-tests' succeeded"
+        #     silent: true
